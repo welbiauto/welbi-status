@@ -1,0 +1,98 @@
+name: Monitor formulario Welbi
+
+on:
+  schedule:
+    - cron: '17 7 */3 * *'   # cada 3 días a las 07:17 UTC (09:17 en verano, 08:17 en invierno)
+  workflow_dispatch:          # botón "Run workflow" para comprobar en cualquier momento
+  push:
+    branches: [main]
+    paths: ['site/**', 'monitor/**', '.github/workflows/monitor.yml']
+
+permissions:
+  contents: write   # guardar el estado en la rama status-data
+  pages: write
+  id-token: write
+
+concurrency:
+  group: welbi-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependencias y navegador de comprobación
+        run: |
+          npm install --no-audit --no-fund --omit=dev
+          npx playwright install --with-deps chromium
+
+      - name: Recuperar estado anterior
+        run: |
+          mkdir -p .state
+          if git fetch --depth=1 origin status-data 2>/dev/null; then
+            git show FETCH_HEAD:state.json > .state/state.json || rm -f .state/state.json
+          fi
+
+      - name: Ejecutar comprobaciones
+        id: run
+        continue-on-error: true
+        env:
+          CONTACT_URL: ${{ vars.CONTACT_URL }}
+          IMAP_HOST: ${{ secrets.IMAP_HOST }}
+          IMAP_PORT: ${{ vars.IMAP_PORT }}
+          IMAP_USER: ${{ secrets.IMAP_USER }}
+          IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
+          IMAP_MAILBOX: ${{ vars.IMAP_MAILBOX }}
+          FORM_MAIL_FROM: ${{ vars.FORM_MAIL_FROM }}
+          FORM_MAIL_SUBJECT: ${{ vars.FORM_MAIL_SUBJECT }}
+          TEST_MARKER: ${{ vars.TEST_MARKER }}
+          AUTORESPONSE_SUBJECT: ${{ vars.AUTORESPONSE_SUBJECT }}
+          EXPECTED_DAYS: ${{ vars.EXPECTED_DAYS }}
+          FAIL_AFTER_DAYS: ${{ vars.FAIL_AFTER_DAYS }}
+          SLOW_MS: ${{ vars.SLOW_MS }}
+          AUTOMATIONS_CRITICAL: ${{ vars.AUTOMATIONS_CRITICAL }}
+        run: node monitor/run.mjs
+
+      - name: Guardar estado
+        if: steps.run.outcome == 'success'
+        run: |
+          cd .state
+          git init -q -b status-data
+          git config user.name "welbi-monitor"
+          git config user.email "welbi-monitor@users.noreply.github.com"
+          git add state.json status.json
+          git commit -qm "Estado $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # Una sola versión, reescrita en cada ejecución: el repositorio no crece
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" status-data
+
+      - name: Preparar la web
+        if: steps.run.outcome == 'success'
+        run: |
+          mkdir -p _site/data
+          cp site/index.html _site/index.html
+          cp .state/status.json _site/data/status.json
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.run.outcome == 'success'
+        with:
+          path: _site
+
+      - id: deploy
+        if: steps.run.outcome == 'success'
+        uses: actions/deploy-pages@v4
+
+      # Si el monitor falla no se publica nada nuevo: el panel marcará los datos como
+      # caducados y GitHub avisa del fallo por correo.
+      - name: Marcar fallo del monitor
+        if: steps.run.outcome != 'success'
+        run: exit 1

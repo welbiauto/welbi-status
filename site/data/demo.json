@@ -1,0 +1,264 @@
+{
+  "demo": true,
+  "note": "Datos de ejemplo generados por el monitor sobre un entorno simulado. No son datos reales.",
+  "scenarios": {
+    "ok": {
+      "version": 2,
+      "mode": "pasivo",
+      "generatedAt": "2026-10-30T07:17:00.000Z",
+      "staleAfterMin": 5760,
+      "checkEveryMin": 4320,
+      "runUrl": null,
+      "global": {
+        "state": "ok",
+        "message": "Todos los sistemas operativos.",
+        "highlight": null
+      },
+      "components": [
+        {
+          "id": "pagina",
+          "name": "Disponibilidad de la página",
+          "critical": true,
+          "state": "ok",
+          "summary": "Página accesible",
+          "detail": "HTTP 200 · 300 ms",
+          "cause": null,
+          "checkedAt": "2026-10-30T07:17:00.000Z"
+        },
+        {
+          "id": "formulario",
+          "name": "Funcionamiento del formulario",
+          "critical": true,
+          "state": "ok",
+          "summary": "Formulario disponible",
+          "detail": "Campos y seguridad correctos · reCAPTCHA visible en navegador · el servidor valida los envíos",
+          "cause": null,
+          "checkedAt": "2026-10-30T07:17:00.000Z"
+        },
+        {
+          "id": "envio",
+          "name": "Envío y recepción de mensajes",
+          "critical": true,
+          "state": "ok",
+          "summary": "Las solicitudes llegan con normalidad",
+          "detail": "Ha llegado al menos una en los últimos 4 días",
+          "cause": null,
+          "checkedAt": "2026-10-30T07:17:00.000Z"
+        },
+        {
+          "id": "automatizaciones",
+          "name": "Automatizaciones y notificaciones",
+          "critical": false,
+          "state": "ok",
+          "summary": "Respuesta automática correcta",
+          "detail": "En la última prueba manual llegó en 41 s",
+          "cause": null,
+          "checkedAt": "2026-10-30T07:17:00.000Z"
+        }
+      ],
+      "lastCheck": {
+        "at": "2026-10-30T07:17:00.000Z",
+        "result": "Correcta",
+        "responseMs": 300
+      },
+      "reception": {
+        "lastMessageAt": "2026-10-29T05:17:00.000Z",
+        "lastTestAt": "2026-10-23T03:17:00.000Z"
+      },
+      "lastIncident": {
+        "openedAt": "2026-10-24T07:17:00.000Z",
+        "resolvedAt": "2026-10-27T07:17:00.000Z",
+        "severity": "fail",
+        "summary": "La página de contacto no está accesible.",
+        "components": [
+          "pagina"
+        ],
+        "status": "resuelta"
+      },
+      "incidents": [
+        {
+          "openedAt": "2026-10-24T07:17:00.000Z",
+          "resolvedAt": "2026-10-27T07:17:00.000Z",
+          "severity": "fail",
+          "summary": "La página de contacto no está accesible.",
+          "components": [
+            "pagina"
+          ],
+          "status": "resuelta"
+        }
+      ]
+    },
+    "warn": {
+      "version": 2,
+      "mode": "pasivo",
+      "generatedAt": "2026-10-24T07:17:00.000Z",
+      "staleAfterMin": 5760,
+      "checkEveryMin": 4320,
+      "runUrl": null,
+      "global": {
+        "state": "warn",
+        "message": "Funcionamiento parcial. Estamos revisando una incidencia.",
+        "highlight": "Envío y recepción de mensajes: sin solicitudes recientes."
+      },
+      "components": [
+        {
+          "id": "pagina",
+          "name": "Disponibilidad de la página",
+          "critical": true,
+          "state": "ok",
+          "summary": "Página accesible",
+          "detail": "HTTP 200 · 300 ms",
+          "cause": null,
+          "checkedAt": "2026-10-24T07:17:00.000Z"
+        },
+        {
+          "id": "formulario",
+          "name": "Funcionamiento del formulario",
+          "critical": true,
+          "state": "ok",
+          "summary": "Formulario disponible",
+          "detail": "Campos y seguridad correctos · reCAPTCHA visible en navegador · el servidor valida los envíos",
+          "cause": null,
+          "checkedAt": "2026-10-24T07:17:00.000Z"
+        },
+        {
+          "id": "envio",
+          "name": "Envío y recepción de mensajes",
+          "critical": true,
+          "state": "warn",
+          "summary": "Sin solicitudes recientes",
+          "detail": "La última llegó hace 6 días. Puede ser poco tráfico: un envío de prueba lo confirma",
+          "cause": null,
+          "checkedAt": "2026-10-24T07:17:00.000Z"
+        },
+        {
+          "id": "automatizaciones",
+          "name": "Automatizaciones y notificaciones",
+          "critical": false,
+          "state": "ok",
+          "summary": "Respuesta automática correcta",
+          "detail": "En la última prueba manual llegó en 41 s",
+          "cause": null,
+          "checkedAt": "2026-10-24T07:17:00.000Z"
+        }
+      ],
+      "lastCheck": {
+        "at": "2026-10-24T07:17:00.000Z",
+        "result": "Con avisos",
+        "responseMs": 300
+      },
+      "reception": {
+        "lastMessageAt": "2026-10-18T04:17:00.000Z",
+        "lastTestAt": "2026-10-16T07:17:00.000Z"
+      },
+      "lastIncident": {
+        "openedAt": "2026-10-24T07:17:00.000Z",
+        "resolvedAt": null,
+        "severity": "warn",
+        "summary": "Envío y recepción de mensajes: sin solicitudes recientes.",
+        "components": [
+          "envio"
+        ],
+        "status": "abierta"
+      },
+      "incidents": [
+        {
+          "openedAt": "2026-10-24T07:17:00.000Z",
+          "resolvedAt": null,
+          "severity": "warn",
+          "summary": "Envío y recepción de mensajes: sin solicitudes recientes.",
+          "components": [
+            "envio"
+          ],
+          "status": "abierta"
+        }
+      ]
+    },
+    "fail": {
+      "version": 2,
+      "mode": "pasivo",
+      "generatedAt": "2026-10-24T07:17:00.000Z",
+      "staleAfterMin": 5760,
+      "checkEveryMin": 4320,
+      "runUrl": null,
+      "global": {
+        "state": "fail",
+        "message": "Incidencia detectada en el sistema de contacto.",
+        "highlight": "La página de contacto carga, pero el formulario no está operativo."
+      },
+      "components": [
+        {
+          "id": "pagina",
+          "name": "Disponibilidad de la página",
+          "critical": true,
+          "state": "ok",
+          "summary": "Página accesible",
+          "detail": "HTTP 200 · 300 ms",
+          "cause": null,
+          "checkedAt": "2026-10-24T07:17:00.000Z"
+        },
+        {
+          "id": "formulario",
+          "name": "Funcionamiento del formulario",
+          "critical": true,
+          "state": "fail",
+          "summary": "Formulario no operativo",
+          "detail": "El servidor da error al recibir envíos (HTTP 500)",
+          "cause": null,
+          "checkedAt": "2026-10-24T07:17:00.000Z"
+        },
+        {
+          "id": "envio",
+          "name": "Envío y recepción de mensajes",
+          "critical": true,
+          "state": "ok",
+          "summary": "Las solicitudes llegan con normalidad",
+          "detail": "Ha llegado al menos una en los últimos 4 días",
+          "cause": null,
+          "checkedAt": "2026-10-24T07:17:00.000Z"
+        },
+        {
+          "id": "automatizaciones",
+          "name": "Automatizaciones y notificaciones",
+          "critical": false,
+          "state": "ok",
+          "summary": "Respuesta automática correcta",
+          "detail": "En la última prueba manual llegó en 41 s",
+          "cause": null,
+          "checkedAt": "2026-10-24T07:17:00.000Z"
+        }
+      ],
+      "lastCheck": {
+        "at": "2026-10-24T07:17:00.000Z",
+        "result": "Con errores",
+        "responseMs": 300
+      },
+      "reception": {
+        "lastMessageAt": "2026-10-22T02:17:00.000Z",
+        "lastTestAt": "2026-10-19T07:17:00.000Z"
+      },
+      "lastIncident": {
+        "openedAt": "2026-10-24T07:17:00.000Z",
+        "resolvedAt": null,
+        "severity": "fail",
+        "summary": "La página de contacto carga, pero el formulario no está operativo.",
+        "components": [
+          "formulario"
+        ],
+        "status": "abierta"
+      },
+      "incidents": [
+        {
+          "openedAt": "2026-10-24T07:17:00.000Z",
+          "resolvedAt": null,
+          "severity": "fail",
+          "summary": "La página de contacto carga, pero el formulario no está operativo.",
+          "components": [
+            "formulario"
+          ],
+          "status": "abierta"
+        }
+      ]
+    }
+  }
+}

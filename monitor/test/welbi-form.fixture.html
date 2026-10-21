@@ -1,0 +1,39 @@
+<!doctype html><html><head><title>Welbi</title></head><body>
+<form method="post" novalidate>
+        <input type="hidden" name="csrfmiddlewaretoken" value="TOKEN_DE_EJEMPLO">
+        <!-- Campo honeypot (invisible para usuarios) -->
+        <input type="text" name="website" style="display:none !important" tabindex="-1" autocomplete="off" id="id_website">
+        <div class="grid">
+            <div class="campo"><input type="text" name="nombre" placeholder="Nombre" maxlength="100" required id="id_nombre"></div>
+            <div class="campo"><input type="email" name="email" placeholder="Correo electrónico" maxlength="320" required id="id_email"></div>
+            <div class="campo"><input type="text" name="empresa" placeholder="Empresa" maxlength="100" id="id_empresa"></div>
+            <div class="campo"><input type="text" name="empleados" placeholder="Nº de empleados" maxlength="100" id="id_empleados"></div>
+            <div class="campo"><input type="text" name="telefono" placeholder="Teléfono" maxlength="50" id="id_telefono"></div>
+            <div class="campo"><input type="text" name="codigo_postal" placeholder="Código postal" maxlength="10" id="id_codigo_postal"></div>
+        </div>
+        <div class="campo-textarea">
+            <textarea name="mensaje" cols="40" rows="4" placeholder="Escribe tu mensaje..." required id="id_mensaje">
+</textarea>
+        </div>
+        <!-- CAPTCHA -->
+        <div class="campo-captcha">
+            <script src="https://www.google.com/recaptcha/api.js"></script>
+<script>
+    var onSubmit_9085f58f641f40dab291860d1630722f = function(token) {
+        console.log("reCAPTCHA validated for 'data-widget-uuid=\"9085f58f641f40dab291860d1630722f\"'")
+    };
+</script>
+
+<div
+     data-theme="light" data-size="normal" class="g-recaptcha" data-sitekey="6LcCSW4rAAAAAMDQ5SGyv93ldAMjNfhfO8umKzP7" id="id_captcha" data-widget-uuid="9085f58f641f40dab291860d1630722f" data-callback="onSubmit_9085f58f641f40dab291860d1630722f"
+>
+</div>
+        </div>
+        <div class="checkbox-politica">
+            <input type="checkbox" name="acepta_politica" id="id_acepta_politica">
+            <label for="id_acepta_politica">Acepto la política de privacidad y aviso legal</label>
+        </div>
+        <button type="submit" class="boton">Enviar</button>
+    </form>
+<p>Marcado copiado de https://www.welbi.es/contacto/ el 21/10/2026 (token sustituido).</p>
+</body></html>

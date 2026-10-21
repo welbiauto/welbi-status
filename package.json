@@ -1,0 +1,17 @@
+{
+  "name": "welbi-status",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Monitor y panel de estado del formulario de contacto de Welbi (sin acceso al backend)",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "monitor": "node monitor/run.mjs",
+    "test": "node --test monitor/test/*.test.mjs",
+    "demo": "node monitor/demo.mjs"
+  },
+  "dependencies": {
+    "imapflow": "^1.0.164",
+    "playwright": "^1.48.2"
+  }
+}

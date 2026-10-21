@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estado del formulario Welbi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: cabecera de marca → semáforo general → 4 tarjetas de control → registro de comprobaciones e incidencias.
+   Colores de marca Welbi (verde petróleo + verde hoja); los colores de estado son semánticos y aparte. */
+:root {
+  --bg: #f3f5f3;
+  --surface: #ffffff;
+  --ink: #0a3d3f;          /* verde petróleo Welbi */
+  --ink-soft: #4f6b6b;
+  --line: #dde5e1;
+  --brand: #b0d8a7;        /* verde hoja Welbi */
+  --ok: #1e9e5a;
+  --ok-bg: #e5f5ec;
+  --warn: #e07800;
+  --warn-bg: #fff1dd;
+  --fail: #d33a2c;
+  --fail-bg: #fde7e4;
+  --unk: #8a9696;
+  --unk-bg: #eef1f0;
+  --font-body: "Mulish", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1a1b; --surface: #132829; --ink: #e3efec; --ink-soft: #9db3b0; --line: #24403f;
+    --brand: #8fc285; --ok: #3ccf7f; --ok-bg: #12352a; --warn: #ffa53d; --warn-bg: #3a2a12;
+    --fail: #ff6b5c; --fail-bg: #3d1a17; --unk: #8fa09f; --unk-bg: #1c3132; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1a1b; --surface: #132829; --ink: #e3efec; --ink-soft: #9db3b0; --line: #24403f;
+  --brand: #8fc285; --ok: #3ccf7f; --ok-bg: #12352a; --warn: #ffa53d; --warn-bg: #3a2a12;
+  --fail: #ff6b5c; --fail-bg: #3d1a17; --unk: #8fa09f; --unk-bg: #1c3132; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 920px;
+  margin: 0 auto;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 20px;
+}
+
+/* Cabecera */
+header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.logo { height: 38px; width: auto; display: block; }
+.wordmark { font-weight: 800; font-size: 30px; letter-spacing: -0.02em; color: var(--ink); }
+.wordmark::after { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--brand); margin-left: 3px; }
+.titles { flex: 1 1 260px; min-width: 0; padding-left: 16px; border-left: 2px solid var(--brand); }
+h1 { margin: 0; font-size: clamp(20px, 3.2vw, 26px); font-weight: 800; line-height: 1.2; text-wrap: balance; }
+.sub { margin: 2px 0 0; color: var(--ink-soft); font-size: 15px; }
+.demo-chip {
+  display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 13px; color: var(--ink-soft); background: var(--surface); border: 1px dashed var(--line);
+  border-radius: 999px; padding: 6px 8px 6px 14px;
+}
+.demo .demo-chip { display: inline-flex; }
+.demo-chip button {
+  font: 600 12px var(--font-body); color: var(--ink); background: transparent; border: 1px solid var(--line);
+  border-radius: 999px; padding: 4px 10px; cursor: pointer;
+}
+.demo-chip button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.demo-chip button:focus-visible, .refresh:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Semáforo */
+.lamp {
+  --c: var(--unk);
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 55%, #fff) 0 18%, var(--c) 60%);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent), 0 0 14px color-mix(in srgb, var(--c) 55%, transparent);
+  color: #fff; font: 800 13px/1 var(--font-body);
+}
+.lamp[data-s="ok"] { --c: var(--ok); }
+.lamp[data-s="warn"] { --c: var(--warn); }
+.lamp[data-s="fail"] { --c: var(--fail); }
+.lamp[data-s="unknown"] { --c: var(--unk); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent); }
+.lamp.big { width: 68px; height: 68px; font-size: 32px; box-shadow: 0 0 0 8px color-mix(in srgb, var(--c) 16%, transparent), 0 0 34px color-mix(in srgb, var(--c) 50%, transparent); }
+.lamp[data-s="fail"].big { animation: pulse 2.2s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--c) 10%, transparent), 0 0 44px color-mix(in srgb, var(--c) 60%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .lamp.big { animation: none !important; } }
+
+/* Estado general */
+.overall {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 26px clamp(18px, 4vw, 34px);
+  display: flex; gap: clamp(18px, 4vw, 30px); align-items: center;
+  border-top: 6px solid var(--c, var(--unk));
+}
+.overall[data-s="ok"] { --c: var(--ok); }
+.overall[data-s="warn"] { --c: var(--warn); }
+.overall[data-s="fail"] { --c: var(--fail); }
+.overall[data-s="unknown"] { --c: var(--unk); }
+.overall .txt { min-width: 0; display: grid; gap: 6px; }
+.state-word { font: 500 12px var(--font-data); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c); }
+.overall h2 { margin: 0; font-size: clamp(21px, 3.6vw, 30px); font-weight: 800; line-height: 1.2; text-wrap: balance; }
+.highlight { margin: 2px 0 0; padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--c) 12%, var(--surface)); font-weight: 600; }
+.updated { margin: 0; color: var(--ink-soft); font-size: 14px; }
+.updated b { font: 500 14px var(--font-data); color: var(--ink); }
+
+/* Banda de aviso (datos caducados o fallo de carga) */
+.notice {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--warn-bg); color: var(--ink); border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  border-radius: 10px; padding: 12px 14px; font-size: 15px;
+}
+.notice strong { color: var(--warn); }
+
+/* Tarjetas de control */
+.checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+.check {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px 20px; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: start;
+}
+.check .lamp { grid-row: span 3; margin-top: 2px; }
+.check h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink-soft); }
+.check .summary { margin: 0; font-size: 18px; font-weight: 800; line-height: 1.3; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.tag { font: 500 11px var(--font-data); letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; }
+.tag[data-s="ok"] { background: var(--ok-bg); color: var(--ok); }
+.tag[data-s="warn"] { background: var(--warn-bg); color: var(--warn); }
+.tag[data-s="fail"] { background: var(--fail-bg); color: var(--fail); }
+.tag[data-s="unknown"] { background: var(--unk-bg); color: var(--ink-soft); }
+.check .detail { margin: 0; font-size: 14px; color: var(--ink-soft); min-width: 0; overflow-wrap: anywhere; }
+
+/* Registro */
+.log { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 12px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; min-width: 0; }
+.panel h2 { margin: 0 0 12px; font: 500 12px var(--font-data); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 9px 16px; font-size: 14px; }
+dt { color: var(--ink-soft); }
+dd { margin: 0; font-family: var(--font-data); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.incidents { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.incidents li { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 14px; }
+.incidents .lamp { width: 12px; height: 12px; margin-top: 5px; grid-row: span 2; box-shadow: none; }
+.incidents .when { font: 400 13px var(--font-data); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.empty { color: var(--ink-soft); font-size: 14px; margin: 0; }
+
+footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--ink-soft); font-size: 13px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.refresh { display: inline-block; text-decoration: none; font: 600 13px var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (max-width: 520px) {
+  .titles { border-left: 0; padding-left: 0; flex-basis: 100%; }
+  .overall { flex-direction: column; align-items: flex-start; }
+  dl { grid-template-columns: 1fr; gap: 2px; }
+  dd { margin-bottom: 8px; }
+}
+</style>
+</head>
+<body>
+<main class="wrap" id="app">
+  <header>
+    <img class="logo" id="logo" src="https://www.welbi.es/static/images/logo-welbi.png" alt="Welbi">
+    <span class="wordmark" id="wordmark" hidden>welbi</span>
+    <div class="titles">
+      <h1>Estado del formulario de contacto</h1>
+      <p class="sub">Monitorización del sistema de contacto de Welbi</p>
+    </div>
+    <div class="demo-chip" role="group" aria-label="Escenario de ejemplo">
+      <span>Datos de ejemplo:</span>
+      <button type="button" id="demo-ok" data-scn="ok">Correcto</button>
+      <button type="button" id="demo-warn" data-scn="warn">Parcial</button>
+      <button type="button" id="demo-fail" data-scn="fail">Incidencia</button>
+      <button type="button" id="demo-stale" data-scn="stale">Sin datos recientes</button>
+    </div>
+  </header>
+
+  <section class="overall" id="overall" data-s="unknown" aria-live="polite">
+    <div class="lamp big" id="g-lamp" data-s="unknown" aria-hidden="true">?</div>
+    <div class="txt">
+      <span class="state-word" id="g-word">Cargando</span>
+      <h2 id="g-msg">Consultando el estado del sistema…</h2>
+      <p class="highlight" id="g-highlight" hidden></p>
+      <p class="updated">Última actualización: <b id="g-time">—</b> <span id="g-ago"></span></p>
+    </div>
+  </section>
+
+  <div class="notice" id="notice" role="alert" hidden></div>
+
+  <ul class="checks" id="checks" aria-label="Controles"></ul>
+
+  <div class="log">
+    <section class="panel">
+      <h2>Última comprobación</h2>
+      <dl>
+        <dt>Comprobación</dt><dd id="m-check">—</dd>
+        <dt>Resultado</dt><dd id="m-result">—</dd>
+        <dt>Tiempo de respuesta</dt><dd id="m-ms">—</dd>
+        <dt>Última solicitud recibida</dt><dd id="m-msg">—</dd>
+        <dt>Última prueba manual</dt><dd id="m-test">—</dd>
+        <dt>Última incidencia</dt><dd id="m-inc">—</dd>
+        <dt>Estado de la incidencia</dt><dd id="m-inc-st">—</dd>
+      </dl>
+    </section>
+    <section class="panel">
+      <h2>Incidencias recientes</h2>
+      <ul class="incidents" id="incidents"></ul>
+    </section>
+  </div>
+
+  <footer>
+    <span id="cadence">Comprobación automática periódica · hora peninsular española</span>
+    <span class="actions">
+      <a class="refresh" id="run-now" href="#" target="_blank" rel="noopener" hidden>Comprobar ahora</a>
+      <button type="button" class="refresh" id="refresh">Recargar datos</button>
+    </span>
+  </footer>
+</main>
+
+<script>
+(() => {
+  const TZ = 'Europe/Madrid';
+  const REFRESH_MS = 5 * 60_000;
+  const SYMBOL = { ok: '✓', warn: '!', fail: '×', unknown: '?' };
+  const WORD = { ok: 'Operativo', warn: 'Funcionamiento parcial', fail: 'Incidencia', unknown: 'Estado desconocido' };
+  const TAG = { ok: 'Correcto', warn: 'Aviso', fail: 'Fallo', unknown: 'Sin datos' };
+  const NAMES = { pagina: 'Página de contacto', formulario: 'Formulario', envio: 'Envío y recepción', automatizaciones: 'Automatizaciones' };
+
+  const $ = (id) => document.getElementById(id);
+  const fmtTime = new Intl.DateTimeFormat('es-ES', { timeZone: TZ, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const fmtFull = new Intl.DateTimeFormat('es-ES', { timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const full = (iso) => (iso ? fmtFull.format(new Date(iso)).replace(',', ' ·') : '—');
+  function ago(iso) {
+    if (!iso) return '';
+    const s = Math.max(0, Math.round((Date.now() - new Date(iso)) / 1000));
+    if (s < 60) return 'hace unos segundos';
+    const m = Math.round(s / 60);
+    if (m < 60) return `hace ${m} ${m === 1 ? 'minuto' : 'minutos'}`;
+    const h = Math.round(m / 60);
+    return h < 48 ? `hace ${h} ${h === 1 ? 'hora' : 'horas'}` : `hace ${Math.round(h / 24)} días`;
+  }
+
+  // El logo se sirve desde welbi.es: si esa web cae, se muestra el nombre en texto
+  $('logo').addEventListener('error', () => { $('logo').hidden = true; $('wordmark').hidden = false; });
+
+  let data = null;       // último status.json recibido
+  let fetchError = null; // fallo al pedir los datos
+  let demo = null;       // escenarios de ejemplo, si no hay datos reales
+  let scenario = 'ok';
+
+  async function load() {
+    try {
+      const r = await fetch(`data/status.json?t=${Date.now()}`, { cache: 'no-store' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      data = await r.json();
+      fetchError = null;
+      demo = null;
+    } catch (err) {
+      if (!data && !demo) {
+        try {
+          const r = await fetch('data/demo.json', { cache: 'no-store' });
+          if (r.ok) { demo = await r.json(); document.body.classList.add('demo'); }
+        } catch { /* sin ejemplo */ }
+      }
+      if (!demo) fetchError = err.message || 'error de red';
+    }
+    render();
+  }
+
+  // En modo ejemplo las fechas se desplazan a "ahora" para que el escenario sea creíble
+  function demoData() {
+    const base = structuredClone(demo.scenarios[scenario === 'stale' ? 'ok' : scenario]);
+    // Ejemplo: la última comprobación fue hace 7 horas (o hace 5 días en el caso "sin datos recientes")
+    const lagMin = scenario === 'stale' ? 5 * 24 * 60 : 7 * 60;
+    const shift = Date.now() - lagMin * 60000 - new Date(base.generatedAt).getTime();
+    const move = (o) => {
+      for (const k in o) {
+        const v = o[k];
+        if (typeof v === 'string' && /^\d{4}-\d\d-\d\dT/.test(v)) o[k] = new Date(new Date(v).getTime() + shift).toISOString();
+        else if (v && typeof v === 'object') move(v);
+      }
+    };
+    move(base);
+    return base;
+  }
+
+  function render() {
+    const d = demo ? demoData() : data;
+    document.querySelectorAll('.demo-chip button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.scn === scenario)));
+    if (!d) {
+      paintGlobal('unknown', 'No se pueden cargar los datos de monitorización.', null, null);
+      showNotice('<strong>Sin datos.</strong> No se ha podido leer el estado del monitor. Se volverá a intentar en unos minutos.');
+      $('checks').innerHTML = '';
+      return;
+    }
+
+    // Datos caducados: nunca se muestra verde con información antigua
+    const ageMin = (Date.now() - new Date(d.generatedAt)) / 60000;
+    const stale = ageMin > (d.staleAfterMin || 20);
+
+    let comps = d.components.map((c) => {
+      const cStale = stale || (Date.now() - new Date(c.checkedAt)) / 60000 > (d.staleAfterMin || 20);
+      return cStale
+        ? { ...c, state: 'unknown', summary: 'Dato caducado', detail: `Último valor conocido (${fmtTime.format(new Date(c.checkedAt))}): ${c.summary.toLowerCase()}` }
+        : c;
+    });
+
+    if (stale) {
+      paintGlobal('unknown', 'Estado desconocido: el monitor no ha informado recientemente.',
+        `La última comprobación recibida es del ${full(d.generatedAt)}. No se puede garantizar el estado actual.`, d.generatedAt);
+    } else {
+      paintGlobal(d.global.state, d.global.message, d.global.highlight, d.generatedAt);
+    }
+
+    if (fetchError) {
+      showNotice(`<strong>No se ha podido actualizar.</strong> Se muestran los datos del ${full(d.generatedAt)}; se reintentará en unos minutos.`);
+    } else if (stale) {
+      showNotice(`<strong>Datos caducados.</strong> El monitor lleva ${dur(ageMin)} sin enviar resultados (límite: ${dur(d.staleAfterMin)}). Puede ser un fallo de la propia monitorización.`);
+    } else {
+      $('notice').hidden = true;
+    }
+
+    $('checks').innerHTML = comps.map((c) => `
+      <li class="check" id="c-${c.id}">
+        <div class="lamp" data-s="${c.state}" aria-hidden="true">${SYMBOL[c.state]}</div>
+        <h3>${esc(c.name)}</h3>
+        <p class="summary"><span>${esc(c.summary)}</span><span class="tag" data-s="${c.state}">${TAG[c.state]}${c.cause === 'monitor' && c.state === 'unknown' ? ' · monitor' : ''}</span></p>
+        <p class="detail">${esc(c.detail || '')}</p>
+      </li>`).join('');
+
+    $('m-check').textContent = full(d.lastCheck?.at);
+    $('m-result').textContent = stale ? 'Caducada' : (d.lastCheck?.result || '—');
+    $('m-ms').textContent = d.lastCheck?.responseMs != null ? `${d.lastCheck.responseMs.toLocaleString('es-ES')} ms` : '—';
+    $('m-msg').textContent = d.reception?.lastMessageAt ? full(d.reception.lastMessageAt) : 'Sin datos';
+    $('m-test').textContent = d.reception?.lastTestAt ? full(d.reception.lastTestAt) : 'Ninguna registrada';
+    $('cadence').textContent = `Comprobación automática cada ${dur(d.checkEveryMin || 4320)} · hora peninsular española`;
+    $('run-now').hidden = !d.runUrl;
+    if (d.runUrl) $('run-now').href = d.runUrl;
+    $('m-inc').textContent = d.lastIncident ? full(d.lastIncident.openedAt) : 'Ninguna registrada';
+    $('m-inc-st').textContent = d.lastIncident
+      ? (d.lastIncident.status === 'abierta' ? 'Abierta' : `Resuelta · ${full(d.lastIncident.resolvedAt)}`)
+      : '—';
+
+    const inc = d.incidents || [];
+    $('incidents').innerHTML = inc.length
+      ? inc.map((i) => `
+        <li>
+          <div class="lamp" data-s="${i.status === 'abierta' ? i.severity : 'ok'}" aria-hidden="true"></div>
+          <span><b>${i.status === 'abierta' ? 'Abierta' : 'Resuelta'}</b> · ${esc(i.summary)}</span>
+          <span class="when">${full(i.openedAt)}${i.resolvedAt ? ` → ${fmtTime.format(new Date(i.resolvedAt))}` : ''} · ${i.components.map((c) => NAMES[c] || c).join(', ')}</span>
+        </li>`).join('')
+      : '<p class="empty">No hay incidencias registradas.</p>';
+  }
+
+  function paintGlobal(state, msg, highlight, at) {
+    $('overall').dataset.s = state;
+    $('g-lamp').dataset.s = state;
+    $('g-lamp').textContent = SYMBOL[state];
+    $('g-word').textContent = WORD[state];
+    $('g-msg').textContent = msg;
+    $('g-highlight').hidden = !highlight;
+    $('g-highlight').textContent = highlight || '';
+    $('g-time').textContent = at ? fmtTime.format(new Date(at)) : '—';
+    $('g-time').dataset.at = at || '';
+    $('g-ago').textContent = at ? `(${ago(at)})` : '';
+    document.title = `${SYMBOL[state]} Estado del formulario Welbi`;
+  }
+  function dur(min) {
+    if (min < 90) return `${Math.round(min)} minutos`;
+    const h = Math.round(min / 60);
+    if (h < 48) return `${h} horas`;
+    const dd = Math.round(h / 24);
+    return dd === 1 ? '1 día' : `${dd} días`;
+  }
+  function showNotice(html) { $('notice').innerHTML = html; $('notice').hidden = false; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+  document.querySelectorAll('.demo-chip button').forEach((b) => b.addEventListener('click', () => { scenario = b.dataset.scn; render(); }));
+  $('refresh').addEventListener('click', load);
+  // El "hace X minutos" y la caducidad se recalculan aunque no lleguen datos nuevos
+  setInterval(render, 20_000);
+  setInterval(load, REFRESH_MS);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+  load();
+})();
+</script>
+</body>
+</html>
