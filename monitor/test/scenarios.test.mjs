@@ -152,3 +152,84 @@ test('lo publicado y el estado interno no contienen direcciones de correo', asyn
 });
 
 void START;
+
+// ---------------------------------------------------------------- Brevo
+import { inspectBrevo } from '../lib/brevo.mjs';
+
+function brevoHttp(world, events, account = { plan: [{ type: 'free', creditsType: 'sendLimit', credits: 280 }] }, status = 200) {
+  const base = fakeHttp(world);
+  const calls = [];
+  const request = async (url, opts = {}) => {
+    if (url.startsWith('https://api.brevo.com/')) {
+      calls.push({ url, key: opts.headers?.['api-key'] });
+      if (status !== 200) return { status, text: '{}', headers: { get: () => null } };
+      const body = url.includes('/account') ? account : { events };
+      return { status: 200, text: JSON.stringify(body), headers: { get: () => null } };
+    }
+    return base.request(url, opts);
+  };
+  return { ...base, request, get: (u, o) => request(u, o), calls };
+}
+const ev = (event, msAgo, subject = 'Nueva solicitud de presupuesto') => ({ event, date: new Date(START.getTime() - msAgo).toISOString(), subject, email: 'equipo@welbi.es' });
+
+async function tickBrevo(ctx, http) {
+  const { state, status } = await runMonitor({
+    cfg: ctx.cfg, http, lookup: fakeLookup(ctx.world), browserCheck: fakeBrowser(ctx.world),
+    sleep: fakeSleep(ctx.world), now: ctx.clock.now, state: ctx.state,
+  });
+  ctx.state = state;
+  return status;
+}
+const brevoCfg = (over = {}) => ({ brevo: { apiKey: 'xkeysib-test', to: '', subject: '', lowCredits: 20, ...over }, imap: { host: '', port: 993, user: '', pass: '', mailbox: 'INBOX' } });
+
+test('Brevo: avisos enviados y entregados → verde, con alerta de solicitudes nuevas', async () => {
+  const ctx = setup({}, brevoCfg());
+  const http = brevoHttp(ctx.world, [ev('requests', 5 * HOUR), ev('delivered', 5 * HOUR - 5000)]);
+  const s = await tickBrevo(ctx, http);
+  assert.equal(comp(s, 'envio').state, 'ok');
+  assert.equal(comp(s, 'automatizaciones').state, 'ok');
+  assert.equal(s.global.state, 'ok');
+  assert.equal(s.requests.source, 'brevo');
+  assert.equal(s.requests.newSincePrevious, true);
+  assert.equal(http.calls[0].key, 'xkeysib-test');
+  assert.doesNotMatch(JSON.stringify(s), /@|presupuesto/i, 'no se publican direcciones ni asuntos');
+});
+
+test('Brevo: sin solicitudes nuevas desde la comprobación anterior → sin alerta', async () => {
+  const ctx = setup({}, brevoCfg());
+  const http = brevoHttp(ctx.world, [ev('requests', 2 * DAY), ev('delivered', 2 * DAY)]);
+  await tickBrevo(ctx, http); // primera comprobación
+  ctx.clock.advance(3 * DAY);
+  const s = await tickBrevo(ctx, brevoHttp(ctx.world, [ev('requests', 2 * DAY), ev('delivered', 2 * DAY)]));
+  assert.equal(s.requests.newSincePrevious, false);
+});
+
+test('Brevo: rebote del aviso → recepción en rojo', async () => {
+  const ctx = setup({}, brevoCfg());
+  const s = await tickBrevo(ctx, brevoHttp(ctx.world, [ev('requests', 3 * HOUR), ev('hardBounces', 3 * HOUR - 4000)]));
+  assert.equal(comp(s, 'envio').state, 'fail');
+  assert.equal(comp(s, 'envio').summary, 'Avisos no entregados');
+  assert.equal(s.global.state, 'fail');
+});
+
+test('Brevo: sin envíos disponibles → notificaciones en rojo', async () => {
+  const ctx = setup({}, brevoCfg());
+  const s = await tickBrevo(ctx, brevoHttp(ctx.world, [ev('requests', 3 * HOUR), ev('delivered', 3 * HOUR)], { plan: [{ type: 'free', creditsType: 'sendLimit', credits: 0 }] }));
+  assert.equal(comp(s, 'automatizaciones').state, 'fail');
+  assert.match(comp(s, 'automatizaciones').detail, /agotado/);
+});
+
+test('Brevo: clave no válida → gris "monitor", sin incidencia', async () => {
+  const ctx = setup({}, brevoCfg());
+  const s = await tickBrevo(ctx, brevoHttp(ctx.world, [], undefined, 401));
+  assert.equal(comp(s, 'envio').cause, 'monitor');
+  assert.equal(comp(s, 'envio').summary, 'Clave de Brevo no válida');
+  assert.equal(s.incidents.length, 0);
+});
+
+test('Brevo: filtro por asunto ignora otros correos transaccionales', async () => {
+  const cfg = makeCfg(brevoCfg({ subject: 'solicitud de presupuesto' }));
+  const http = brevoHttp(makeWorld(), [ev('requests', 1 * HOUR, 'Factura de octubre'), ev('requests', 8 * DAY), ev('delivered', 8 * DAY)]);
+  const r = await inspectBrevo(cfg, http, { now: START });
+  assert.equal(r.lastSentAt, new Date(START.getTime() - 8 * DAY).toISOString());
+});

@@ -3,13 +3,13 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 export function emptyState() {
-  return { version: 2, components: {}, incidents: [], history: [] };
+  return { version: 2, components: {}, incidents: [], history: [], lastCheckAt: null };
 }
 
 export async function loadState(path) {
   try {
     const raw = JSON.parse(await readFile(path, 'utf8'));
-    return { ...emptyState(), incidents: raw.incidents || [], history: raw.history || [], components: raw.components || {} };
+    return { ...emptyState(), incidents: raw.incidents || [], history: raw.history || [], components: raw.components || {}, lastCheckAt: raw.lastCheckAt || null };
   } catch {
     return emptyState();
   }

@@ -7,7 +7,8 @@ import { imapConfigured, formMailConfigured, inspectInbox } from './lib/mailbox.
 import { checkPage } from './checks/page.mjs';
 import { inspectForm, emptySubmit, combineForm } from './checks/form.mjs';
 import { browserCheck as realBrowserCheck } from './checks/browser.mjs';
-import { evaluateReception, evaluateAutomations, when } from './checks/reception.mjs';
+import { evaluateReception, evaluateAutomations, evaluateBrevoReception, evaluateBrevoService, when } from './checks/reception.mjs';
+import { brevoConfigured, inspectBrevo } from './lib/brevo.mjs';
 import { COMPONENTS, computeGlobal, updateIncidents, buildPublicStatus } from './lib/aggregate.mjs';
 
 // A y B: página y formulario
@@ -44,7 +45,7 @@ async function readInbox(cfg, lookup, now) {
 }
 
 export async function runMonitor({
-  cfg = loadConfig(), http, lookup = inspectInbox, browserCheck = realBrowserCheck,
+  cfg = loadConfig(), http, lookup = inspectInbox, brevoLookup = inspectBrevo, browserCheck = realBrowserCheck,
   sleep = realSleep, now = () => new Date(), state,
 } = {}) {
   http ||= createHttp(cfg);
@@ -66,10 +67,31 @@ export async function runMonitor({
   log('A página:', page.state, '-', page.detail);
   log('B formulario:', form.state, '-', form.detail);
 
-  // C y D: lectura del buzón
-  const inbox = await readInbox(cfg, lookup, t);
-  const reception = evaluateReception(cfg, inbox, t);
-  const automations = evaluateAutomations(cfg, inbox, t);
+  // C y D: Brevo si está configurado; si no, el buzón
+  let inbox = { status: 'not_configured' };
+  let brevo = null;
+  let reception;
+  let automations;
+  const previousCheck = state.lastCheckAt || null;
+  if (brevoConfigured(cfg)) {
+    try {
+      brevo = { status: 'ok', ...(await brevoLookup(cfg, http, { now: t, since: previousCheck })) };
+    } catch (err) {
+      console.log('Brevo no accesible:', err.code || 'error');
+      brevo = { status: 'error', code: err.code };
+    }
+    reception = evaluateBrevoReception(cfg, brevo, t);
+    automations = evaluateBrevoService(cfg, brevo);
+  } else {
+    inbox = await readInbox(cfg, lookup, t);
+    reception = evaluateReception(cfg, inbox, t);
+    automations = evaluateAutomations(cfg, inbox, t);
+  }
+  // ¿Han llegado solicitudes de presupuesto desde la comprobación anterior? (sin cifras)
+  const lastRequestAt = brevo?.status === 'ok' ? brevo.lastSentAt : inbox.status === 'ok' ? inbox.lastMessageAt : null;
+  const newRequests = lastRequestAt && previousCheck ? new Date(lastRequestAt) > new Date(previousCheck)
+    : lastRequestAt ? (t - new Date(lastRequestAt)) < cfg.checkEveryHours * 3600000 : null;
+  state.lastCheckAt = nowIso;
   log('C recepción:', reception.state, '-', reception.detail);
   log('D automatizaciones:', automations.state, '-', automations.detail);
 
@@ -87,6 +109,7 @@ export async function runMonitor({
   const status = buildPublicStatus({
     cfg, nowIso, components, global, state, pageMetrics: page.metrics,
     inbox: inbox.status === 'ok' ? inbox : null,
+    requests: { source: brevo ? 'brevo' : inbox.status === 'ok' ? 'buzon' : null, lastAt: lastRequestAt, newSincePrevious: newRequests, previousCheckAt: previousCheck },
   });
   log('Estado general:', global.state, '-', global.message);
   return { state, status };

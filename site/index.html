@@ -130,6 +130,13 @@ h1 { margin: 0; font-size: clamp(20px, 3.2vw, 26px); font-weight: 800; line-heig
   border-radius: 10px; padding: 12px 14px; font-size: 15px;
 }
 .notice strong { color: var(--warn); }
+.news {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: color-mix(in srgb, var(--brand) 22%, var(--surface)); color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--brand) 70%, transparent);
+  border-radius: 10px; padding: 12px 14px; font-size: 15px;
+}
+.news-dot { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 60%, transparent); }
 
 /* Tarjetas de control */
 .checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
@@ -202,6 +209,11 @@ footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wr
   </section>
 
   <div class="notice" id="notice" role="alert" hidden></div>
+
+  <div class="news" id="news" role="status" hidden>
+    <span class="news-dot" aria-hidden="true"></span>
+    <div><strong>Nuevas solicitudes de presupuesto.</strong> <span id="news-txt"></span></div>
+  </div>
 
   <ul class="checks" id="checks" aria-label="Controles"></ul>
 
@@ -347,7 +359,12 @@ footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wr
     $('m-check').textContent = full(d.lastCheck?.at);
     $('m-result').textContent = stale ? 'Caducada' : (d.lastCheck?.result || '—');
     $('m-ms').textContent = d.lastCheck?.responseMs != null ? `${d.lastCheck.responseMs.toLocaleString('es-ES')} ms` : '—';
-    $('m-msg').textContent = d.reception?.lastMessageAt ? full(d.reception.lastMessageAt) : 'Sin datos';
+    const lastReq = d.requests?.lastAt || d.reception?.lastMessageAt;
+    $('m-msg').textContent = lastReq ? full(lastReq) : 'Sin datos';
+    $('news').hidden = !(d.requests?.newSincePrevious && !stale);
+    $('news-txt').textContent = d.requests?.previousCheckAt
+      ? `Han llegado desde la comprobación anterior (${full(d.requests.previousCheckAt)}). Revisa el correo.`
+      : 'Han llegado en los últimos días. Revisa el correo.';
     $('m-test').textContent = d.reception?.lastTestAt ? full(d.reception.lastTestAt) : 'Ninguna registrada';
     $('cadence').textContent = `Comprobación automática cada ${dur(d.checkEveryMin || 4320)} · hora peninsular española`;
     $('run-now').hidden = !d.runUrl;

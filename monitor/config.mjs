@@ -23,7 +23,15 @@ export function loadConfig(overrides = {}) {
     emptySubmitCheck: bool(env.EMPTY_SUBMIT_CHECK, true),
     browserCheck: bool(env.BROWSER_CHECK, true),
 
-    // Buzón donde llegan los avisos del formulario (solo lectura)
+    // Brevo (preferente): registro de envíos transaccionales, solo lectura
+    brevo: {
+      apiKey: str(env.BREVO_API_KEY),
+      to: str(env.BREVO_TO),           // opcional: dirección que recibe los avisos del formulario
+      subject: str(env.BREVO_SUBJECT), // opcional: texto del asunto de los avisos
+      lowCredits: num(env.BREVO_LOW_CREDITS, 20),
+    },
+
+    // Buzón donde llegan los avisos del formulario (alternativa a Brevo, solo lectura)
     imap: {
       host: str(env.IMAP_HOST),
       port: num(env.IMAP_PORT, 993),

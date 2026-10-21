@@ -77,12 +77,12 @@ export function updateIncidents(state, global, components, nowIso) {
 }
 
 // Lo que se publica: solo información general, sin datos personales ni detalles internos.
-export function buildPublicStatus({ cfg, nowIso, components, global, state, pageMetrics, inbox }) {
+export function buildPublicStatus({ cfg, nowIso, components, global, state, pageMetrics, inbox, requests = null }) {
   const lastIncident = state.incidents.at(-1) || null;
   const worst = components.reduce((m, c) => Math.max(m, RANK[c.state]), 0);
   return {
     version: 2,
-    mode: 'pasivo',
+    mode: requests?.source === 'brevo' ? 'brevo' : 'pasivo',
     generatedAt: nowIso,
     staleAfterMin: cfg.staleAfterMin,
     checkEveryMin: cfg.checkEveryHours * 60,
@@ -100,6 +100,8 @@ export function buildPublicStatus({ cfg, nowIso, components, global, state, page
       lastMessageAt: inbox?.lastMessageAt ?? null,
       lastTestAt: inbox?.lastTestAt ?? null,
     },
+    // Solicitudes de presupuesto: solo si han llegado nuevas, sin cifras ni datos
+    requests,
     lastIncident: lastIncident ? { ...pick(lastIncident), status: lastIncident.resolvedAt ? 'resuelta' : 'abierta' } : null,
     incidents: state.incidents.slice(-5).reverse().map((i) => ({ ...pick(i), status: i.resolvedAt ? 'resuelta' : 'abierta' })),
   };

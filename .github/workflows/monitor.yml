@@ -48,6 +48,9 @@ jobs:
         continue-on-error: true
         env:
           CONTACT_URL: ${{ vars.CONTACT_URL }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_TO: ${{ vars.BREVO_TO }}
+          BREVO_SUBJECT: ${{ vars.BREVO_SUBJECT }}
           IMAP_HOST: ${{ secrets.IMAP_HOST }}
           IMAP_PORT: ${{ vars.IMAP_PORT }}
           IMAP_USER: ${{ secrets.IMAP_USER }}

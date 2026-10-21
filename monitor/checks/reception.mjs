@@ -41,6 +41,52 @@ export function evaluateReception(cfg, inbox, now = new Date()) {
   };
 }
 
+// ---------------------------------------------------------------- Brevo
+// C con Brevo: ¿la web sigue enviando avisos del formulario y se entregan?
+export function evaluateBrevoReception(cfg, brevo, now = new Date()) {
+  if (brevo.status === 'error') {
+    return brevo.code === 'BREVO_AUTH'
+      ? { state: 'unknown', cause: 'monitor', summary: 'Clave de Brevo no válida', detail: 'Revisa el secreto BREVO_API_KEY en GitHub' }
+      : { state: 'unknown', cause: 'monitor', summary: 'Brevo no responde', detail: 'El monitor no ha podido consultar Brevo; no es necesariamente un fallo de Welbi' };
+  }
+  const { lastSentAt, lastDeliveredAt, failures } = brevo;
+  if (failures.hard || failures.blocked) {
+    const what = [failures.hard && 'rebotes', failures.blocked && 'bloqueos'].filter(Boolean).join(' y ');
+    return { state: 'fail', summary: 'Avisos no entregados', detail: `Brevo ha registrado ${what} en los avisos del formulario desde la última comprobación` };
+  }
+  if (!lastSentAt) {
+    return { state: 'fail', summary: 'No llegan solicitudes', detail: `Brevo no ha enviado ningún aviso del formulario en ${days(cfg.lookbackDays)}. Haz un envío de prueba para confirmarlo` };
+  }
+  const ageDays = Math.floor((now - new Date(lastSentAt)) / DAY);
+  if (failures.soft) {
+    return { state: 'warn', summary: 'Entregas con retraso', detail: 'Brevo ha tenido que reintentar algunos avisos del formulario' };
+  }
+  if (!lastDeliveredAt || new Date(lastDeliveredAt) < new Date(lastSentAt) - 3600000) {
+    return { state: 'warn', summary: 'Entrega pendiente', detail: 'El último aviso del formulario se envió pero Brevo aún no confirma la entrega' };
+  }
+  if (ageDays < cfg.expectedDays) {
+    return { state: 'ok', summary: 'Las solicitudes llegan con normalidad', detail: `Brevo ha enviado y entregado avisos del formulario en los últimos ${days(cfg.expectedDays)}` };
+  }
+  if (ageDays < cfg.failAfterDays) {
+    return { state: 'warn', summary: 'Sin solicitudes recientes', detail: `El último aviso se envió hace ${days(ageDays)}. Puede ser poco tráfico: un envío de prueba lo confirma` };
+  }
+  return { state: 'fail', summary: 'Sin solicitudes en muchos días', detail: `El último aviso se envió hace ${days(ageDays)} (límite: ${days(cfg.failAfterDays)}). Revisa el formulario con un envío de prueba` };
+}
+
+// D con Brevo: el servicio que envía las notificaciones está operativo y tiene envíos disponibles
+export function evaluateBrevoService(cfg, brevo) {
+  if (brevo.status === 'error') {
+    return { state: 'unknown', cause: 'monitor', summary: 'Sin datos de Brevo', detail: 'No se ha podido consultar la cuenta de Brevo' };
+  }
+  if (brevo.credits === 0) {
+    return { state: 'fail', summary: 'Sin envíos disponibles en Brevo', detail: 'La cuenta de Brevo ha agotado su saldo o su límite de envíos: los avisos no saldrán' };
+  }
+  if (brevo.credits != null && brevo.credits < cfg.brevo.lowCredits) {
+    return { state: 'warn', summary: 'Quedan pocos envíos en Brevo', detail: 'El saldo de envíos de Brevo está a punto de agotarse' };
+  }
+  return { state: 'ok', summary: 'Notificaciones operativas', detail: 'Brevo envía los avisos del formulario y tiene envíos disponibles' };
+}
+
 export function evaluateAutomations(cfg, inbox, now = new Date()) {
   if (!cfg.autoresponseSubject) {
     return { state: 'unknown', summary: 'Sin verificación automática', detail: 'No hay ninguna automatización configurada para comprobar' };

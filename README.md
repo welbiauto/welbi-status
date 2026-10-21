@@ -51,6 +51,29 @@ pasa a gris con un aviso, aunque lo último recibido fuera verde.
 **Incidencias**: se abre una cuando el estado pasa a naranja o rojo por un fallo real y se cierra
 al volver a verde. Se guardan las 20 últimas; la landing muestra las 5 últimas.
 
+## Recepción con Brevo (recomendado)
+
+Si la web envía los avisos del formulario a través de Brevo, el monitor consulta en solo lectura
+el registro de envíos transaccionales de Brevo:
+
+- **C · Envío y recepción**: verde si Brevo ha enviado y entregado avisos en los últimos 4 días;
+  rojo si alguno ha rebotado o se ha bloqueado desde la comprobación anterior; naranja si hay
+  reintentos o si llevan entre 4 y 10 días sin solicitudes.
+- **D · Notificaciones**: verde si Brevo está operativo con envíos disponibles; naranja si quedan
+  pocos; rojo si se ha agotado el saldo o el límite de envíos.
+- **Aviso de solicitudes nuevas**: si desde la comprobación anterior han llegado solicitudes de
+  presupuesto, el panel muestra un aviso. No se publican cifras, direcciones ni asuntos.
+
+Configuración en *Settings → Secrets and variables → Actions*:
+
+| Tipo | Nombre | Para qué |
+|---|---|---|
+| Secreto | `BREVO_API_KEY` | Clave API de Brevo (*SMTP y API → Claves API*) |
+| Variable (opcional) | `BREVO_TO` | Dirección que recibe los avisos del formulario, si Brevo envía también otros correos |
+| Variable (opcional) | `BREVO_SUBJECT` | Texto del asunto de los avisos, como alternativa a `BREVO_TO` |
+
+Si `BREVO_API_KEY` está configurada se usa Brevo; si no, el buzón por IMAP (apartado siguiente).
+
 ## Cómo se comprueba la recepción sin tocar el backend
 
 El monitor se conecta por IMAP **en solo lectura** al buzón donde llegan las solicitudes
