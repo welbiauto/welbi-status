@@ -45,6 +45,10 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+/* El logotipo de Welbi es verde oscuro: en modo oscuro se muestra en claro */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo { filter: brightness(0) invert(0.92); } }
+:root[data-theme="dark"] .logo { filter: brightness(0) invert(0.92); }
 body {
   margin: 0;
   background: var(--bg);
