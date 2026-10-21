@@ -31,6 +31,14 @@ export function loadConfig(overrides = {}) {
       lowCredits: num(env.BREVO_LOW_CREDITS, 20),
     },
 
+    // Resumen semanal por correo (se envía con Brevo)
+    report: {
+      reportTo: str(env.REPORT_TO),
+      reportFrom: str(env.REPORT_FROM),             // remitente verificado en Brevo
+      reportFromName: str(env.REPORT_FROM_NAME, 'Estado del formulario · Welbi'),
+      panelUrl: str(env.PANEL_URL, 'https://welbiauto.github.io/welbi-status/'),
+    },
+
     // Buzón donde llegan los avisos del formulario (alternativa a Brevo, solo lectura)
     imap: {
       host: str(env.IMAP_HOST),

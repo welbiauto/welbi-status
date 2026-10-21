@@ -233,3 +233,42 @@ test('Brevo: filtro por asunto ignora otros correos transaccionales', async () =
   const r = await inspectBrevo(cfg, http, { now: START });
   assert.equal(r.lastSentAt, new Date(START.getTime() - 8 * DAY).toISOString());
 });
+
+// ---------------------------------------------------------------- Resumen semanal
+import { buildReport, sendReport } from '../report.mjs';
+
+test('resumen semanal: todo en orden → asunto positivo y enlace al panel', async () => {
+  const s = await tick(setup());
+  const r = buildReport(s, { panelUrl: 'https://welbiauto.github.io/welbi-status/', now: START });
+  assert.equal(r.subject, 'Formulario de contacto de Welbi: todo en orden');
+  assert.match(r.html, /href="https:\/\/welbiauto\.github\.io\/welbi-status\/"/);
+  assert.match(r.text, /Panel de estado: https/);
+});
+
+test('resumen semanal: datos caducados → nunca dice "todo en orden"', async () => {
+  const s = await tick(setup());
+  const r = buildReport(s, { panelUrl: 'x', now: new Date(START.getTime() + 6 * DAY) });
+  assert.equal(r.state, 'unknown');
+  assert.match(r.subject, /no se ha podido comprobar/);
+});
+
+test('resumen semanal: se envía por Brevo con etiqueta propia', async () => {
+  const s = await tick(setup());
+  let sent;
+  const http = { request: async (url, opts) => { sent = { url, body: JSON.parse(opts.body), key: opts.headers['api-key'] }; return { status: 201, text: '{}' }; } };
+  const cfg = makeCfg({ brevo: { apiKey: 'k', to: '', subject: '', lowCredits: 20 }, report: { reportTo: 'cliente@ejemplo.com', reportFrom: 'avisos@welbi.es', reportFromName: 'Estado', panelUrl: 'https://p/' } });
+  await sendReport({ cfg, http, status: s, now: START });
+  assert.equal(sent.url, 'https://api.brevo.com/v3/smtp/email');
+  assert.deepEqual(sent.body.to, [{ email: 'cliente@ejemplo.com' }]);
+  assert.deepEqual(sent.body.tags, ['welbi-monitor-resumen']);
+});
+
+test('Brevo: los resúmenes del propio monitor no cuentan como solicitudes', async () => {
+  const cfg = makeCfg(brevoCfg());
+  const http = brevoHttp(makeWorld(), [
+    { event: 'requests', date: new Date(START.getTime() - HOUR).toISOString(), subject: 'Formulario de contacto de Welbi: todo en orden', tags: ['welbi-monitor-resumen'] },
+    ev('requests', 2 * DAY), ev('delivered', 2 * DAY),
+  ]);
+  const r = await inspectBrevo(cfg, http, { now: START });
+  assert.equal(r.lastSentAt, new Date(START.getTime() - 2 * DAY).toISOString());
+});

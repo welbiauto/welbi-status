@@ -34,7 +34,9 @@ export async function inspectBrevo(cfg, http, { now = new Date(), since = null }
 
   const { events = [] } = await call(cfg, http, `/smtp/statistics/events?${params}`);
   const subject = cfg.brevo.subject.toLowerCase();
-  const relevant = events.filter((e) => !subject || String(e.subject || '').toLowerCase().includes(subject));
+  // Se descartan los resúmenes semanales que envía el propio monitor
+  const own = (e) => [].concat(e.tags || e.tag || []).includes('welbi-monitor-resumen') || String(e.subject || '').startsWith('Formulario de contacto de Welbi:');
+  const relevant = events.filter((e) => !own(e) && (!subject || String(e.subject || '').toLowerCase().includes(subject)));
 
   const times = (type) => relevant.filter((e) => e.event === type).map((e) => new Date(e.date).getTime()).filter(Number.isFinite);
   const latest = (list) => (list.length ? new Date(Math.max(...list)).toISOString() : null);

@@ -3,7 +3,13 @@ name: Monitor formulario Welbi
 on:
   schedule:
     - cron: '17 7 */3 * *'   # cada 3 días a las 07:17 UTC (09:17 en verano, 08:17 en invierno)
+    - cron: '43 6 * * 1'     # lunes a las 06:43 UTC: comprobación + resumen semanal por correo
   workflow_dispatch:          # botón "Run workflow" para comprobar en cualquier momento
+    inputs:
+      send_report:
+        description: 'Enviar también el resumen por correo'
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths: ['site/**', 'monitor/**', '.github/workflows/monitor.yml']
@@ -65,6 +71,17 @@ jobs:
           SLOW_MS: ${{ vars.SLOW_MS }}
           AUTOMATIONS_CRITICAL: ${{ vars.AUTOMATIONS_CRITICAL }}
         run: node monitor/run.mjs
+
+      - name: Enviar resumen semanal por correo
+        if: steps.run.outcome == 'success' && (github.event.schedule == '43 6 * * 1' || inputs.send_report)
+        continue-on-error: true
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          REPORT_TO: ${{ secrets.REPORT_TO }}
+          REPORT_FROM: ${{ vars.REPORT_FROM }}
+          REPORT_FROM_NAME: ${{ vars.REPORT_FROM_NAME }}
+          PANEL_URL: ${{ vars.PANEL_URL }}
+        run: node monitor/report.mjs
 
       - name: Guardar estado
         if: steps.run.outcome == 'success'
