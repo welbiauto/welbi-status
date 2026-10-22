@@ -1,0 +1,112 @@
+{
+  "version": 2,
+  "components": {
+    "pagina": "ok",
+    "formulario": "ok",
+    "envio": "ok",
+    "automatizaciones": "ok"
+  },
+  "incidents": [
+    {
+      "id": "inc-20261021203438",
+      "openedAt": "2026-10-21T20:34:38.962Z",
+      "resolvedAt": "2026-10-21T20:37:51.775Z",
+      "severity": "warn",
+      "components": [
+        "envio"
+      ],
+      "summary": "Envío y recepción de mensajes: sin solicitudes recientes."
+    }
+  ],
+  "history": [
+    {
+      "t": "2026-10-21T20:17:14.122Z",
+      "g": "warn",
+      "ms": 1044,
+      "c": {
+        "pagina": "ok",
+        "formulario": "ok",
+        "envio": "unknown",
+        "automatizaciones": "unknown"
+      }
+    },
+    {
+      "t": "2026-10-21T20:18:42.810Z",
+      "g": "warn",
+      "ms": 1478,
+      "c": {
+        "pagina": "ok",
+        "formulario": "ok",
+        "envio": "unknown",
+        "automatizaciones": "unknown"
+      }
+    },
+    {
+      "t": "2026-10-21T20:32:06.476Z",
+      "g": "warn",
+      "ms": 770,
+      "c": {
+        "pagina": "ok",
+        "formulario": "ok",
+        "envio": "unknown",
+        "automatizaciones": "unknown"
+      }
+    },
+    {
+      "t": "2026-10-21T20:34:38.962Z",
+      "g": "warn",
+      "ms": 1034,
+      "c": {
+        "pagina": "ok",
+        "formulario": "ok",
+        "envio": "warn",
+        "automatizaciones": "ok"
+      }
+    },
+    {
+      "t": "2026-10-21T20:37:51.775Z",
+      "g": "ok",
+      "ms": 1247,
+      "c": {
+        "pagina": "ok",
+        "formulario": "ok",
+        "envio": "ok",
+        "automatizaciones": "ok"
+      }
+    },
+    {
+      "t": "2026-10-21T20:47:06.360Z",
+      "g": "ok",
+      "ms": 1299,
+      "c": {
+        "pagina": "ok",
+        "formulario": "ok",
+        "envio": "ok",
+        "automatizaciones": "ok"
+      }
+    },
+    {
+      "t": "2026-10-21T20:49:18.032Z",
+      "g": "ok",
+      "ms": 789,
+      "c": {
+        "pagina": "ok",
+        "formulario": "ok",
+        "envio": "ok",
+        "automatizaciones": "ok"
+      }
+    },
+    {
+      "t": "2026-10-22T07:53:56.620Z",
+      "g": "ok",
+      "ms": 1312,
+      "c": {
+        "pagina": "ok",
+        "formulario": "ok",
+        "envio": "ok",
+        "automatizaciones": "ok"
+      }
+    }
+  ],
+  "lastCheckAt": "2026-10-22T07:53:56.620Z"
+}
