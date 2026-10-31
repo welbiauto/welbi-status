@@ -1,0 +1,102 @@
+{
+  "version": 2,
+  "mode": "brevo",
+  "generatedAt": "2026-10-31T07:58:10.590Z",
+  "staleAfterMin": 5760,
+  "checkEveryMin": 4320,
+  "runUrl": "https://github.com/welbiauto/welbi-status/actions/workflows/monitor.yml",
+  "global": {
+    "state": "warn",
+    "message": "Funcionamiento parcial. Estamos revisando una incidencia.",
+    "highlight": "Envío y recepción de mensajes: sin solicitudes recientes."
+  },
+  "components": [
+    {
+      "id": "pagina",
+      "name": "Disponibilidad de la página",
+      "critical": true,
+      "state": "ok",
+      "summary": "Página accesible",
+      "detail": "HTTP 200 · 1286 ms",
+      "cause": null,
+      "checkedAt": "2026-10-31T07:58:10.590Z"
+    },
+    {
+      "id": "formulario",
+      "name": "Funcionamiento del formulario",
+      "critical": true,
+      "state": "ok",
+      "summary": "Formulario disponible",
+      "detail": "Campos y seguridad correctos · reCAPTCHA visible en navegador · el servidor valida los envíos",
+      "cause": null,
+      "checkedAt": "2026-10-31T07:58:10.590Z"
+    },
+    {
+      "id": "envio",
+      "name": "Envío y recepción de mensajes",
+      "critical": true,
+      "state": "warn",
+      "summary": "Sin solicitudes recientes",
+      "detail": "El último aviso se envió hace 9 días. Puede ser poco tráfico: un envío de prueba lo confirma",
+      "cause": null,
+      "checkedAt": "2026-10-31T07:58:10.590Z"
+    },
+    {
+      "id": "automatizaciones",
+      "name": "Automatizaciones y notificaciones",
+      "critical": false,
+      "state": "ok",
+      "summary": "Notificaciones operativas",
+      "detail": "Brevo envía los avisos del formulario y tiene envíos disponibles",
+      "cause": null,
+      "checkedAt": "2026-10-31T07:58:10.590Z"
+    }
+  ],
+  "lastCheck": {
+    "at": "2026-10-31T07:58:10.590Z",
+    "result": "Con avisos",
+    "responseMs": 1286
+  },
+  "reception": {
+    "lastMessageAt": null,
+    "lastTestAt": null
+  },
+  "requests": {
+    "source": "brevo",
+    "lastAt": "2026-10-21T20:37:01.605Z",
+    "newSincePrevious": false,
+    "previousCheckAt": "2026-10-28T08:06:25.126Z"
+  },
+  "lastIncident": {
+    "openedAt": "2026-10-26T07:34:20.422Z",
+    "resolvedAt": null,
+    "severity": "warn",
+    "summary": "Envío y recepción de mensajes: sin solicitudes recientes.",
+    "components": [
+      "envio"
+    ],
+    "status": "abierta"
+  },
+  "incidents": [
+    {
+      "openedAt": "2026-10-26T07:34:20.422Z",
+      "resolvedAt": null,
+      "severity": "warn",
+      "summary": "Envío y recepción de mensajes: sin solicitudes recientes.",
+      "components": [
+        "envio"
+      ],
+      "status": "abierta"
+    },
+    {
+      "openedAt": "2026-10-21T20:34:38.962Z",
+      "resolvedAt": "2026-10-21T20:37:51.775Z",
+      "severity": "warn",
+      "summary": "Envío y recepción de mensajes: sin solicitudes recientes.",
+      "components": [
+        "envio"
+      ],
+      "status": "resuelta"
+    }
+  ]
+}
