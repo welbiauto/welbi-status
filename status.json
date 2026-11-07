@@ -1,0 +1,104 @@
+{
+  "version": 2,
+  "mode": "brevo",
+  "generatedAt": "2026-11-07T08:09:20.009Z",
+  "staleAfterMin": 5760,
+  "checkEveryMin": 4320,
+  "runUrl": "https://github.com/welbiauto/welbi-status/actions/workflows/monitor.yml",
+  "global": {
+    "state": "fail",
+    "message": "Incidencia detectada en el sistema de contacto.",
+    "highlight": "La página y el formulario funcionan, pero no se ha podido confirmar que las solicitudes lleguen al buzón."
+  },
+  "components": [
+    {
+      "id": "pagina",
+      "name": "Disponibilidad de la página",
+      "critical": true,
+      "state": "ok",
+      "summary": "Página accesible",
+      "detail": "HTTP 200 · 770 ms",
+      "cause": null,
+      "checkedAt": "2026-11-07T08:09:20.009Z"
+    },
+    {
+      "id": "formulario",
+      "name": "Funcionamiento del formulario",
+      "critical": true,
+      "state": "ok",
+      "summary": "Formulario disponible",
+      "detail": "Campos y seguridad correctos · reCAPTCHA visible en navegador · el servidor valida los envíos",
+      "cause": null,
+      "checkedAt": "2026-11-07T08:09:20.009Z"
+    },
+    {
+      "id": "envio",
+      "name": "Envío y recepción de mensajes",
+      "critical": true,
+      "state": "fail",
+      "summary": "Sin solicitudes en muchos días",
+      "detail": "El último aviso se envió hace 16 días (límite: 10 días). Revisa el formulario con un envío de prueba",
+      "cause": null,
+      "checkedAt": "2026-11-07T08:09:20.009Z"
+    },
+    {
+      "id": "automatizaciones",
+      "name": "Automatizaciones y notificaciones",
+      "critical": false,
+      "state": "ok",
+      "summary": "Notificaciones operativas",
+      "detail": "Brevo envía los avisos del formulario y tiene envíos disponibles",
+      "cause": null,
+      "checkedAt": "2026-11-07T08:09:20.009Z"
+    }
+  ],
+  "lastCheck": {
+    "at": "2026-11-07T08:09:20.009Z",
+    "result": "Con errores",
+    "responseMs": 770
+  },
+  "reception": {
+    "lastMessageAt": null,
+    "lastTestAt": null
+  },
+  "requests": {
+    "source": "brevo",
+    "lastAt": "2026-10-21T20:37:01.605Z",
+    "newSincePrevious": false,
+    "previousCheckAt": "2026-11-04T08:24:19.058Z"
+  },
+  "lastIncident": {
+    "openedAt": "2026-10-26T07:34:20.422Z",
+    "resolvedAt": null,
+    "severity": "fail",
+    "summary": "La página y el formulario funcionan, pero no se ha podido confirmar que las solicitudes lleguen al buzón.",
+    "components": [
+      "envio",
+      "pagina"
+    ],
+    "status": "abierta"
+  },
+  "incidents": [
+    {
+      "openedAt": "2026-10-26T07:34:20.422Z",
+      "resolvedAt": null,
+      "severity": "fail",
+      "summary": "La página y el formulario funcionan, pero no se ha podido confirmar que las solicitudes lleguen al buzón.",
+      "components": [
+        "envio",
+        "pagina"
+      ],
+      "status": "abierta"
+    },
+    {
+      "openedAt": "2026-10-21T20:34:38.962Z",
+      "resolvedAt": "2026-10-21T20:37:51.775Z",
+      "severity": "warn",
+      "summary": "Envío y recepción de mensajes: sin solicitudes recientes.",
+      "components": [
+        "envio"
+      ],
+      "status": "resuelta"
+    }
+  ]
+}
