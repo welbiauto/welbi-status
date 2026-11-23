@@ -10,6 +10,10 @@ on:
         description: 'Enviar también el resumen por correo'
         type: boolean
         default: false
+      test_alert_to:
+        description: 'Enviar un correo de PRUEBA del aviso a esta dirección (vacío = no)'
+        type: string
+        default: ''
   push:
     branches: [main]
     paths: ['site/**', 'monitor/**', '.github/workflows/monitor.yml']
@@ -91,6 +95,15 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           ALERT_TO: ${{ vars.ALERT_TO }}
           ALERT_WARN_DAYS: ${{ vars.ALERT_WARN_DAYS }}
+          PANEL_URL: ${{ vars.PANEL_URL }}
+        run: node monitor/alert.mjs
+
+      - name: Enviar correo de prueba del aviso
+        if: steps.run.outcome == 'success' && inputs.test_alert_to != ''
+        env:
+          GMAIL_USER: ${{ vars.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_TEST_TO: ${{ inputs.test_alert_to }}
           PANEL_URL: ${{ vars.PANEL_URL }}
         run: node monitor/alert.mjs
 
