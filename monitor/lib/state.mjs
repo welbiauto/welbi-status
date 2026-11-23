@@ -9,7 +9,7 @@ export function emptyState() {
 export async function loadState(path) {
   try {
     const raw = JSON.parse(await readFile(path, 'utf8'));
-    return { ...emptyState(), incidents: raw.incidents || [], history: raw.history || [], components: raw.components || {}, lastCheckAt: raw.lastCheckAt || null };
+    return { ...emptyState(), incidents: raw.incidents || [], history: raw.history || [], components: raw.components || {}, lastCheckAt: raw.lastCheckAt || null, alert: raw.alert || null };
   } catch {
     return emptyState();
   }
