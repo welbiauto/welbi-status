@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "imapflow": "^1.0.164",
+    "nodemailer": "^6.9.16",
     "playwright": "^1.48.2"
   }
 }
