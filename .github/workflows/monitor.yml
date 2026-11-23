@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy1.outputs.page_url || steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -83,6 +83,17 @@ jobs:
           PANEL_URL: ${{ vars.PANEL_URL }}
         run: node monitor/report.mjs
 
+      - name: Avisar por correo si hay un problema serio
+        if: steps.run.outcome == 'success'
+        continue-on-error: true
+        env:
+          GMAIL_USER: ${{ vars.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_TO: ${{ vars.ALERT_TO }}
+          ALERT_WARN_DAYS: ${{ vars.ALERT_WARN_DAYS }}
+          PANEL_URL: ${{ vars.PANEL_URL }}
+        run: node monitor/alert.mjs
+
       - name: Guardar estado
         if: steps.run.outcome == 'success'
         run: |
@@ -102,13 +113,24 @@ jobs:
           cp site/index.html _site/index.html
           cp .state/status.json _site/data/status.json
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         if: steps.run.outcome == 'success'
         with:
           path: _site
 
-      - id: deploy
+      # GitHub a veces no encuentra el paquete recién subido ("No artifacts named github-pages").
+      # Se reintenta la publicación tras una pausa antes de darla por fallida.
+      - id: deploy1
         if: steps.run.outcome == 'success'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+
+      - name: Esperar antes de reintentar la publicación
+        if: steps.run.outcome == 'success' && steps.deploy1.outcome == 'failure'
+        run: sleep 60
+
+      - id: deploy
+        if: steps.run.outcome == 'success' && steps.deploy1.outcome == 'failure'
         uses: actions/deploy-pages@v4
 
       # Si el monitor falla no se publica nada nuevo: el panel marcará los datos como
