@@ -146,9 +146,30 @@ export async function runAlert({ cfg = alertConfig(), send = gmailSend, now = ne
   return { state, decision };
 }
 
+// Correo de prueba: muestra cómo sería un aviso en rojo, sin tocar el estado del monitor.
+export async function sendTestAlert({ cfg = alertConfig(), send = gmailSend, to, status, now = new Date() } = {}) {
+  if (!cfg.appPassword) throw new Error('Falta el secreto GMAIL_APP_PASSWORD');
+  status ||= JSON.parse(await readFile(cfg.statusPath, 'utf8'));
+  const sample = {
+    ...status,
+    global: { state: 'fail', message: 'Incidencia detectada en el sistema de contacto.', highlight: 'Esto es una PRUEBA: el formulario funciona con normalidad.' },
+    components: [{ id: 'prueba', name: 'Correo de prueba', state: 'fail', summary: 'Simulación de incidencia', detail: 'Este mensaje solo comprueba que los avisos llegan correctamente' }],
+  };
+  const msg = buildAlert(sample, { alert: { problemSince: status.generatedAt } }, 'rojo', cfg, now);
+  await send({ ...cfg, to }, { ...msg, subject: `[PRUEBA] ${msg.subject}` });
+  console.log('Correo de prueba enviado.');
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const cfg = alertConfig();
-  try {
+  if (process.env.ALERT_TEST_TO) {
+    try {
+      await sendTestAlert({ cfg, to: process.env.ALERT_TEST_TO });
+    } catch (err) {
+      console.error('No se pudo enviar el correo de prueba:', err.message);
+      process.exitCode = 1;
+    }
+  } else try {
     const { state } = await runAlert({ cfg });
     await saveJson(cfg.statePath, state);
   } catch (err) {
