@@ -272,3 +272,61 @@ test('Brevo: los resúmenes del propio monitor no cuentan como solicitudes', asy
   const r = await inspectBrevo(cfg, http, { now: START });
   assert.equal(r.lastSentAt, new Date(START.getTime() - 2 * DAY).toISOString());
 });
+
+// ---------------------------------------------------------------- Aviso por correo de problemas serios
+import { decideAlert, buildAlert, runAlert, alertConfig } from '../alert.mjs';
+
+const acfg = (over = {}) => alertConfig({ appPassword: 'app-pass', ...over });
+const st = (state, at) => ({ generatedAt: at.toISOString(), global: { state, message: 'x', highlight: state === 'fail' ? 'La página de contacto no está accesible.' : null }, components: [{ id: 'pagina', name: 'Disponibilidad de la página', state: state === 'ok' ? 'ok' : state, summary: 'Página inaccesible', detail: 'HTTP 500' }] });
+
+test('aviso: rojo → se envía una sola vez por incidencia', async () => {
+  const sent = [];
+  const send = async (_c, m) => sent.push(m);
+  let state = { alert: null };
+  ({ state } = await runAlert({ cfg: acfg(), send, now: START, state, status: st('fail', START) }));
+  ({ state } = await runAlert({ cfg: acfg(), send, now: new Date(START.getTime() + 3 * DAY), state, status: st('fail', new Date(START.getTime() + 3 * DAY)) }));
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].subject, 'Incidencia en el formulario de contacto de welbi.es');
+  assert.match(sent[0].text, /support@savilecode\.com/);
+  assert.match(sent[0].text, /Jon Maza, 661 342 289/);
+});
+
+test('aviso: naranja solo se avisa a partir de 10 días sin volver a verde', async () => {
+  const sent = [];
+  const send = async (_c, m) => sent.push(m);
+  let state = { alert: null };
+  for (const d of [0, 3, 6, 9]) ({ state } = await runAlert({ cfg: acfg(), send, now: new Date(START.getTime() + d * DAY), state, status: st('warn', new Date(START.getTime() + d * DAY)) }));
+  assert.equal(sent.length, 0);
+  ({ state } = await runAlert({ cfg: acfg(), send, now: new Date(START.getTime() + 12 * DAY), state, status: st('warn', new Date(START.getTime() + 12 * DAY)) }));
+  assert.equal(sent.length, 1);
+  assert.match(sent[0].subject, /lleva 12 días con avisos/);
+});
+
+test('aviso: volver a verde rearma el aviso; gris (fallo del monitor) no avisa ni rearma', async () => {
+  const sent = [];
+  const send = async (_c, m) => sent.push(m);
+  let state = { alert: null };
+  ({ state } = await runAlert({ cfg: acfg(), send, now: START, state, status: st('fail', START) }));
+  ({ state } = await runAlert({ cfg: acfg(), send, now: START, state, status: st('unknown', START) }));
+  assert.equal(sent.length, 1);
+  assert.ok(state.alert.sentAt, 'el gris no rearma');
+  ({ state } = await runAlert({ cfg: acfg(), send, now: START, state, status: st('ok', START) }));
+  ({ state } = await runAlert({ cfg: acfg(), send, now: START, state, status: st('fail', START) }));
+  assert.equal(sent.length, 2);
+});
+
+test('aviso: si el envío falla, no se marca como enviado y se reintenta', async () => {
+  let state = { alert: null };
+  await assert.rejects(runAlert({ cfg: acfg(), send: async () => { throw new Error('SMTP'); }, now: START, state, status: st('fail', START) }));
+  assert.equal(state.alert.sentAt, null);
+  const sent = [];
+  ({ state } = await runAlert({ cfg: acfg(), send: async (_c, m) => sent.push(m), now: START, state, status: st('fail', START) }));
+  assert.equal(sent.length, 1);
+});
+
+test('aviso: el estado guardado conserva el registro del aviso entre ejecuciones', async () => {
+  const { loadState, saveJson } = await import('../lib/state.mjs');
+  const p = `/tmp/claude-0/welbi-state-${process.pid}.json`;
+  await saveJson(p, { incidents: [], alert: { problemSince: 'x', sentAt: 'y', sentReason: 'rojo' } });
+  assert.equal((await loadState(p)).alert.sentAt, 'y');
+});
