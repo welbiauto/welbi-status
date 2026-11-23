@@ -330,3 +330,12 @@ test('aviso: el estado guardado conserva el registro del aviso entre ejecuciones
   await saveJson(p, { incidents: [], alert: { problemSince: 'x', sentAt: 'y', sentReason: 'rojo' } });
   assert.equal((await loadState(p)).alert.sentAt, 'y');
 });
+
+test('aviso: correo de prueba va a la dirección indicada con [PRUEBA] y sin tocar el estado', async () => {
+  const { sendTestAlert } = await import('../alert.mjs');
+  const sent = [];
+  await sendTestAlert({ cfg: acfg(), send: async (c, m) => sent.push({ to: c.to, ...m }), to: 'jmaza@savilecode.com', status: st('ok', START), now: START });
+  assert.equal(sent[0].to, 'jmaza@savilecode.com');
+  assert.match(sent[0].subject, /^\[PRUEBA\]/);
+  assert.match(sent[0].text, /PRUEBA/);
+});
